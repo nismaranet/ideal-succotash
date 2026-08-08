@@ -66,7 +66,7 @@ export default function Sidebar({
         <Link href="/" className="flex items-center group" onClick={onNavigate}>
           <div className="relative flex h-8 w-24 items-center justify-start transition-transform group-hover:scale-105">
             <Image
-              src="/nismara-group-logo.png"
+              src="https://images.nismara.my.id/web/nismara-group-logo.png"
               alt="Nismara Logo"
               fill
               sizes="96px"
