@@ -11,7 +11,7 @@ export default function LoginPage() {
         <div className="text-center">
           <div className="relative mx-auto h-12 w-40 mb-6">
             <Image
-              src="/nismara-group-logo.png"
+              src="https://images.nismara.my.id/web/nismara-group-logo.png"
               alt="Nismara Logo"
               fill
               sizes="160px"
@@ -22,7 +22,8 @@ export default function LoginPage() {
             Masuk ke Akun
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Silakan masuk menggunakan akun Discord kamu untuk melanjutkan pendaftaran atau mengelola lamaran.
+            Silakan masuk menggunakan akun Discord kamu untuk melanjutkan
+            pendaftaran atau mengelola lamaran.
           </p>
         </div>
 
