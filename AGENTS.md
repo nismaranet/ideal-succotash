@@ -133,7 +133,7 @@ public/
 ### Authentication
 
 - NextAuth v4 dengan **Discord OAuth** provider
-- Session strategy: **database** (bukan JWT)
+- Session strategy: **database custom** (User & Account di MongoDB, Session di Redis dengan TTL 24 jam)
 - Session diperkaya dengan: `discordId`, `role`, `isDriver`, `truckyId`, `driverData`, `teamId`, `xp`, `level`, `isBooster`, `nismaraplus`
 - Role system: `user` | `manager` | `admin`
 - Manager role ditentukan dari Discord role ID
