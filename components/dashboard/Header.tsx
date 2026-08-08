@@ -13,15 +13,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
-export default function Header({ 
-  user 
-}: { 
-  user?: { name?: string | null; image?: string | null; email?: string | null; role?: string } 
+export default function Header({
+  user,
+}: {
+  user?: {
+    name?: string | null;
+    image?: string | null;
+    email?: string | null;
+    role?: string;
+  };
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -29,20 +39,34 @@ export default function Header({
   // Dynamic breadcrumb logic based on pathname
   const segments = pathname.split("/").filter(Boolean);
   const formattedSegments = segments.map((seg) =>
-    seg.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
+    seg
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" "),
   );
 
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger render={
-          <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Buka menu">
-            <Menu className="size-5" />
-          </Button>
-        } />
+        <SheetTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              aria-label="Buka menu"
+            >
+              <Menu className="size-5" />
+            </Button>
+          }
+        />
         <SheetContent side="left" className="w-64 p-0">
           <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
-          <Sidebar role={user?.role} className="flex relative w-full" onNavigate={() => setIsOpen(false)} />
+          <Sidebar
+            role={user?.role}
+            className="flex relative w-full"
+            onNavigate={() => setIsOpen(false)}
+          />
         </SheetContent>
       </Sheet>
 
@@ -54,7 +78,13 @@ export default function Header({
           {formattedSegments.map((segment, idx) => (
             <span key={idx} className="flex items-center">
               {idx > 0 && <span className="mx-2 text-border">/</span>}
-              <span className={idx === formattedSegments.length - 1 ? "text-foreground font-semibold" : "hidden sm:inline-block"}>
+              <span
+                className={
+                  idx === formattedSegments.length - 1
+                    ? "text-foreground font-semibold"
+                    : "hidden sm:inline-block"
+                }
+              >
                 {segment}
               </span>
             </span>
@@ -64,17 +94,26 @@ export default function Header({
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           {/* Profile dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger 
+            <DropdownMenuTrigger
               render={
-                <Button variant="ghost" className="relative flex items-center gap-x-2 h-10 w-full px-2 rounded-full lg:w-auto hover:bg-muted">
+                <Button
+                  variant="ghost"
+                  className="relative flex items-center gap-x-2 h-10 w-full px-2 rounded-full lg:w-auto hover:bg-muted"
+                >
                   <Avatar className="size-8 border border-border">
-                    <AvatarImage src={user?.image || ""} alt={user?.name || "User Avatar"} />
+                    <AvatarImage
+                      src={user?.image || ""}
+                      alt={user?.name || "User Avatar"}
+                    />
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {user?.name?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden lg:flex lg:items-center">
-                    <span className="text-sm font-semibold leading-6 text-foreground" aria-hidden="true">
+                    <span
+                      className="text-sm font-semibold leading-6 text-foreground"
+                      aria-hidden="true"
+                    >
                       {user?.name || "Pengguna"}
                     </span>
                   </span>
@@ -85,7 +124,9 @@ export default function Header({
               <DropdownMenuGroup>
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user?.email}
                     </p>
@@ -93,16 +134,19 @@ export default function Header({
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 render={
-                  <a href="/dashboard/settings" className="cursor-pointer flex items-center">
+                  <a
+                    href="/dashboard/"
+                    className="cursor-pointer flex items-center"
+                  >
                     <User className="mr-2 size-4" />
                     <span>Profil</span>
                   </a>
                 }
               />
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="text-destructive focus:text-destructive cursor-pointer flex items-center"
               >

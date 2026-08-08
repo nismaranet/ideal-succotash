@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
   ShieldAlert,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -50,6 +51,11 @@ export default function Sidebar({
       name: "Review Pelamar",
       href: "/dashboard/manager/applications",
       icon: Users,
+    },
+    {
+      name: "Audit Member",
+      href: "/dashboard/manager/audit",
+      icon: Search,
     },
   ];
 
