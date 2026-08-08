@@ -1,15 +1,15 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { MongoDBRedisAdapter } from "@/lib/auth-adapter";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { getCompanyMemberStats } from "@/lib/trucky";
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: MongoDBRedisAdapter(clientPromise),
   session: {
     strategy: "database",
-    maxAge: 7 * 24 * 60 * 60,
+    maxAge: 24 * 60 * 60, // 24 hours
     updateAge: 24 * 60 * 60,
   },
   providers: [

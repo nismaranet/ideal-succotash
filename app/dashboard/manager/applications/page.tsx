@@ -5,10 +5,17 @@ import { Application } from "@/models/Application";
 import { redirect } from "next/navigation";
 import ApplicationTable from "./ApplicationTable";
 
+export const metadata = {
+  title: "Data Lowongan",
+};
+
 export default async function ReviewPelamarPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user || (session.user.role !== "manager" && session.user.role !== "admin")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "manager" && session.user.role !== "admin")
+  ) {
     redirect("/dashboard");
   }
 
@@ -16,7 +23,9 @@ export default async function ReviewPelamarPage() {
 
   // Ambil seluruh data lamaran, urutkan dari yang terbaru
   const applications = await Application.find()
-    .select("_id applicant.name applicant.discordId lowonganTitle status appliedAt claimedBy.name")
+    .select(
+      "_id applicant.name applicant.discordId lowonganTitle status appliedAt claimedBy.name",
+    )
     .sort({ appliedAt: -1 })
     .lean();
 

@@ -2,6 +2,11 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+export const metadata = {
+  title: "Dashboard Manager",
+  template: "%s - Nismara Recruitment",
+};
+
 export default async function ManagerLayout({
   children,
 }: {
@@ -9,7 +14,10 @@ export default async function ManagerLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user || (session.user.role !== "manager" && session.user.role !== "admin")) {
+  if (
+    !session?.user ||
+    (session.user.role !== "manager" && session.user.role !== "admin")
+  ) {
     redirect("/dashboard");
   }
 

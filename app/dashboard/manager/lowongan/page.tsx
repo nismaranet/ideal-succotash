@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
+
 interface LowonganType {
   _id: string;
   title: string;
@@ -45,9 +46,12 @@ export default function KelolaLowonganPage() {
   }, []);
 
   const filteredData = data.filter((item) => {
-    const matchSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        item.roleType.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchDivision = filterDivision ? item.division === filterDivision : true;
+    const matchSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.roleType.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchDivision = filterDivision
+      ? item.division === filterDivision
+      : true;
     return matchSearch && matchDivision;
   });
 
@@ -56,7 +60,9 @@ export default function KelolaLowonganPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Kelola Lowongan</h1>
-          <p className="text-muted-foreground">Manajemen seluruh lowongan aktif dan nonaktif Nismara Group.</p>
+          <p className="text-muted-foreground">
+            Manajemen seluruh lowongan aktif dan nonaktif Nismara Group.
+          </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/manager/lowongan/create">
@@ -77,7 +83,7 @@ export default function KelolaLowonganPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <select 
+          <select
             className="flex h-10 w-full sm:w-48 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={filterDivision}
             onChange={(e) => setFilterDivision(e.target.value)}
@@ -109,37 +115,84 @@ export default function KelolaLowonganPage() {
             <table className="w-full caption-bottom text-sm">
               <thead className="[&_tr]:border-b border-border">
                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Judul</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Divisi</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tipe Peran</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Dibuat Oleh</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Batas Waktu</th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
-                  <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">Aksi</th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Judul
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Divisi
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Tipe Peran
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Dibuat Oleh
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Batas Waktu
+                  </th>
+                  <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody className="[&_tr:last-child]:border-0">
                 {filteredData.map((item) => (
-                  <tr key={item._id} className="border-b border-border transition-colors hover:bg-muted/50">
-                    <td className="p-4 align-middle font-medium">{item.title}</td>
+                  <tr
+                    key={item._id}
+                    className="border-b border-border transition-colors hover:bg-muted/50"
+                  >
+                    <td className="p-4 align-middle font-medium">
+                      {item.title}
+                    </td>
                     <td className="p-4 align-middle">{item.division}</td>
-                    <td className="p-4 align-middle text-muted-foreground">{item.roleType}</td>
-                    <td className="p-4 align-middle text-muted-foreground">{item.createdBy?.name || "System"}</td>
                     <td className="p-4 align-middle text-muted-foreground">
-                      {item.deadline ? new Date(item.deadline).toLocaleDateString('id-ID') : "-"}
+                      {item.roleType}
+                    </td>
+                    <td className="p-4 align-middle text-muted-foreground">
+                      {item.createdBy?.name || "System"}
+                    </td>
+                    <td className="p-4 align-middle text-muted-foreground">
+                      {item.deadline
+                        ? new Date(item.deadline).toLocaleDateString("id-ID")
+                        : "-"}
                     </td>
                     <td className="p-4 align-middle">
-                      <Badge variant={item.status === "Open" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          item.status === "Open" ? "default" : "secondary"
+                        }
+                      >
                         {item.status}
                       </Badge>
                     </td>
                     <td className="p-4 align-middle text-right">
                       <div className="flex flex-col gap-2 mb-1 items-end">
-                        <Button asChild variant="default" size="sm" className="w-28 text-xs h-7">
-                          <Link href={`/dashboard/manager/lowongan/${item._id}/form`}>Rakit Formulir</Link>
+                        <Button
+                          asChild
+                          variant="default"
+                          size="sm"
+                          className="w-28 text-xs h-7"
+                        >
+                          <Link
+                            href={`/dashboard/manager/lowongan/${item._id}/form`}
+                          >
+                            Rakit Formulir
+                          </Link>
                         </Button>
-                        <Button asChild variant="outline" size="sm" className="w-28 text-xs h-7">
-                          <Link href={`/dashboard/manager/lowongan/${item._id}/edit`}>Edit Metadata</Link>
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="w-28 text-xs h-7"
+                        >
+                          <Link
+                            href={`/dashboard/manager/lowongan/${item._id}/edit`}
+                          >
+                            Edit Metadata
+                          </Link>
                         </Button>
                       </div>
                       {item.updatedBy && (

@@ -4,6 +4,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Header from "@/components/dashboard/Header";
 
+export const metadata = {
+  title: {
+    default: "Dashboard",
+    template: "%s - Nismara Recruitment",
+  },
+};
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -18,10 +25,10 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-muted/20">
       <Sidebar role={session.user.role} />
-      
+
       <div className="lg:pl-64">
         <Header user={session.user} />
-        
+
         <main className="py-6 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {children}

@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import MarkdownEditor from "@/components/dashboard/MarkdownEditor";
 
+
 export default function EditLowonganPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +77,13 @@ export default function EditLowonganPage() {
     return (
       <div className="text-center py-20 text-red-500">
         <p>Error: {error}</p>
-        <Button onClick={() => router.back()} className="mt-4" variant="outline">Kembali</Button>
+        <Button
+          onClick={() => router.back()}
+          className="mt-4"
+          variant="outline"
+        >
+          Kembali
+        </Button>
       </div>
     );
   }
@@ -85,9 +92,11 @@ export default function EditLowonganPage() {
     <div className="space-y-6 max-w-3xl mx-auto pb-10">
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Edit Lowongan</h1>
-        <p className="text-muted-foreground">Perbarui informasi lowongan ini.</p>
+        <p className="text-muted-foreground">
+          Perbarui informasi lowongan ini.
+        </p>
       </div>
-      
+
       <div className="rounded-xl border border-border bg-card text-card-foreground shadow p-6 sm:p-8">
         {error && (
           <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-md text-sm font-medium border border-red-200">
@@ -98,31 +107,59 @@ export default function EditLowonganPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Judul Lowongan <span className="text-red-500">*</span></Label>
-              <Input id="title" name="title" defaultValue={data.title} required 
+              <Label htmlFor="title">
+                Judul Lowongan <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="title"
+                name="title"
+                defaultValue={data.title}
+                required
                 onChange={(e) => {
-                  const slugInput = document.getElementById("slug") as HTMLInputElement;
+                  const slugInput = document.getElementById(
+                    "slug",
+                  ) as HTMLInputElement;
                   if (slugInput && !slugInput.dataset.manual) {
-                    slugInput.value = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+                    slugInput.value = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/(^-|-$)+/g, "");
                   }
                 }}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug (URL) <span className="text-red-500">*</span></Label>
-              <Input id="slug" name="slug" defaultValue={data.slug} required 
+              <Label htmlFor="slug">
+                Slug (URL) <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="slug"
+                name="slug"
+                defaultValue={data.slug}
+                required
                 onChange={(e) => {
                   e.currentTarget.dataset.manual = "true";
                 }}
               />
-              <p className="text-xs text-muted-foreground">Ubah jika perlu, pastikan unik.</p>
+              <p className="text-xs text-muted-foreground">
+                Ubah jika perlu, pastikan unik.
+              </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="division">Divisi <span className="text-red-500">*</span></Label>
-              <Input id="division" name="division" list="divisionList" defaultValue={data.division} required placeholder="Pilih atau ketik divisi baru..." />
+              <Label htmlFor="division">
+                Divisi <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="division"
+                name="division"
+                list="divisionList"
+                defaultValue={data.division}
+                required
+                placeholder="Pilih atau ketik divisi baru..."
+              />
               <datalist id="divisionList">
                 <option value="Nismara Transport" />
                 <option value="Nismara Airlines" />
@@ -135,8 +172,17 @@ export default function EditLowonganPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="roleType">Tipe Peran (Role) <span className="text-red-500">*</span></Label>
-              <Input id="roleType" name="roleType" list="roleTypeList" defaultValue={data.roleType} required placeholder="Pilih atau ketik peran baru..." />
+              <Label htmlFor="roleType">
+                Tipe Peran (Role) <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="roleType"
+                name="roleType"
+                list="roleTypeList"
+                defaultValue={data.roleType}
+                required
+                placeholder="Pilih atau ketik peran baru..."
+              />
               <datalist id="roleTypeList">
                 <option value="Driver" />
                 <option value="Pilot" />
@@ -149,7 +195,13 @@ export default function EditLowonganPage() {
 
             <div className="space-y-2">
               <Label htmlFor="type">Tingkat Komitmen / Status</Label>
-              <Input id="type" name="type" list="typeList" defaultValue={data.type || "Casual"} placeholder="Cth: Casual, Competitive..." />
+              <Input
+                id="type"
+                name="type"
+                list="typeList"
+                defaultValue={data.type || "Casual"}
+                placeholder="Cth: Casual, Competitive..."
+              />
               <datalist id="typeList">
                 <option value="Casual" />
                 <option value="Competitive / Esports" />
@@ -162,13 +214,17 @@ export default function EditLowonganPage() {
 
             <div className="space-y-2">
               <Label htmlFor="location">Lokasi</Label>
-              <Input id="location" name="location" defaultValue={data.location} />
+              <Input
+                id="location"
+                name="location"
+                defaultValue={data.location}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <select 
-                id="status" 
+              <select
+                id="status"
                 name="status"
                 defaultValue={data.status}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -181,42 +237,53 @@ export default function EditLowonganPage() {
 
             <div className="space-y-2">
               <Label htmlFor="deadline">Batas Waktu Lamaran (Opsional)</Label>
-              <Input 
-                id="deadline" 
-                name="deadline" 
-                type="date" 
-                className="h-10" 
-                defaultValue={data.deadline ? new Date(data.deadline).toISOString().split('T')[0] : ""}
+              <Input
+                id="deadline"
+                name="deadline"
+                type="date"
+                className="h-10"
+                defaultValue={
+                  data.deadline
+                    ? new Date(data.deadline).toISOString().split("T")[0]
+                    : ""
+                }
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Deskripsi <span className="text-red-500">*</span></Label>
-            <MarkdownEditor 
-              id="description" 
-              name="description" 
+            <Label htmlFor="description">
+              Deskripsi <span className="text-red-500">*</span>
+            </Label>
+            <MarkdownEditor
+              id="description"
+              name="description"
               rows={6}
-              required 
+              required
               defaultValue={data.description}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="requirements">Persyaratan Pelamar</Label>
-            <p className="text-xs text-muted-foreground">Gunakan daftar titik (bullet) atau ketik tiap syarat di baris baru.</p>
-            <MarkdownEditor 
-              id="requirements" 
-              name="requirements" 
+            <p className="text-xs text-muted-foreground">
+              Gunakan daftar titik (bullet) atau ketik tiap syarat di baris
+              baru.
+            </p>
+            <MarkdownEditor
+              id="requirements"
+              name="requirements"
               rows={8}
-              defaultValue={data.requirements ? data.requirements.join("\n") : ""}
+              defaultValue={
+                data.requirements ? data.requirements.join("\n") : ""
+              }
             />
           </div>
 
           <div className="flex items-center gap-4 pt-4 border-t border-border">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => router.back()}
               disabled={isSaving}
             >
