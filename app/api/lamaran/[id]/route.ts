@@ -6,7 +6,7 @@ import { Application } from "@/models/Application";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -46,7 +46,7 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -84,7 +84,7 @@ export async function PUT(
 
     if (action === "CLAIM") {
       application.claimedBy = {
-        discordId: session.user.discordId,
+        discordId: session.user.discordId as string,
         name: session.user.name || "Manager",
       };
       application.status = "Reviewed";
