@@ -7,6 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, CheckCircle2 } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
+
+interface ConditionRule {
+  fieldId: string;
+  operator: "equals" | "not_equals" | "contains";
+  value: string;
+}
+
+interface FormFieldCondition {
+  logic: "AND" | "OR";
+  rules: ConditionRule[];
+}
 
 interface FormField {
   id: string;
@@ -14,6 +26,7 @@ interface FormField {
   label: string;
   required: boolean;
   options: string[];
+  condition?: FormFieldCondition;
 }
 
 interface ApplyFormClientProps {
@@ -26,6 +39,8 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   
   // State untuk menyimpan jawaban. key = fieldId, value = string | string[]
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
@@ -45,25 +60,67 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
     });
   };
 
+  const evaluateCondition = (condition?: FormFieldCondition): boolean => {
+    if (!condition || !condition.rules || condition.rules.length === 0) return true;
+
+    const results = condition.rules.map(rule => {
+      const answer = answers[rule.fieldId];
+      if (answer === undefined) return false;
+
+      const ansStr = Array.isArray(answer) ? answer.join(",").toLowerCase() : answer.toLowerCase();
+      const valStr = rule.value.toLowerCase();
+
+      switch (rule.operator) {
+        case "equals":
+          return ansStr === valStr;
+        case "not_equals":
+          return ansStr !== valStr;
+        case "contains":
+          return ansStr.includes(valStr);
+        default:
+          return false;
+      }
+    });
+
+    if (condition.logic === "OR") {
+      return results.some(r => r === true);
+    }
+    
+    // Default to AND
+    return results.every(r => r === true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setError(null);
 
+    const visibleFields = fields.filter(f => evaluateCondition(f.condition));
+
     // Validasi field required (jika browser bypass)
-    for (const field of fields) {
+    for (const field of visibleFields) {
       if (field.required) {
         const val = answers[field.id];
         if (!val || (Array.isArray(val) && val.length === 0)) {
           setError(`Pertanyaan "${field.label}" wajib diisi.`);
-          setIsSubmitting(false);
           return;
         }
       }
     }
 
-    // Format payload untuk disubmit
-    const payloadAnswers = fields.map((field) => ({
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (!turnstileToken) {
+      setError("Harap selesaikan verifikasi keamanan (Turnstile) terlebih dahulu.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    const visibleFields = fields.filter(f => evaluateCondition(f.condition));
+    const payloadAnswers = visibleFields.map((field) => ({
       fieldId: field.id,
       question: field.label,
       answer: answers[field.id] || (field.type === "checkbox" ? [] : ""),
@@ -73,7 +130,11 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
       const res = await fetch("/api/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lowonganId, answers: payloadAnswers }),
+        body: JSON.stringify({ 
+          lowonganId, 
+          answers: payloadAnswers,
+          turnstileToken
+        }),
       });
 
       const data = await res.json();
@@ -82,9 +143,12 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
         throw new Error(data.error || "Gagal mengirim lamaran");
       }
 
+      setShowConfirmModal(false);
       setSuccess(true);
     } catch (err: any) {
       setError(err.message);
+      setShowConfirmModal(false);
+      setTurnstileToken(null);
     } finally {
       setIsSubmitting(false);
     }
@@ -108,6 +172,7 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
         <div className="p-4 bg-red-100 text-red-800 rounded-md text-sm font-medium border border-red-200">
@@ -121,7 +186,7 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
         </div>
       ) : (
         <div className="space-y-6">
-          {fields.map((field, idx) => (
+          {fields.filter(f => evaluateCondition(f.condition)).map((field, idx) => (
             <div key={field.id} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4 transition-all focus-within:border-primary/50">
               <Label className="text-base font-medium flex gap-1">
                 {idx + 1}. {field.label}
@@ -221,13 +286,56 @@ export default function ApplyFormClient({ lowonganId, fields }: ApplyFormClientP
           disabled={isSubmitting} 
           className="w-full sm:w-auto h-12 px-8 text-md shadow-lg shadow-primary/20"
         >
-          {isSubmitting ? (
-            <><Loader2 className="mr-2 size-5 animate-spin" /> Mengirim...</>
-          ) : (
-            <><Send className="mr-2 size-5" /> Kirim Lamaran</>
-          )}
+          <Send className="mr-2 size-5" /> Kirim Lamaran
         </Button>
       </div>
     </form>
+
+    {showConfirmModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+        <div className="w-full max-w-md bg-card rounded-2xl border border-border shadow-2xl overflow-hidden animate-fade-in-up">
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-2">Konfirmasi Pengiriman</h3>
+            <p className="text-muted-foreground mb-6 text-sm">
+              Apakah Anda yakin data yang Anda isi sudah benar? Lamaran tidak dapat diubah setelah dikirim.
+            </p>
+            
+            <div className="flex justify-center mb-6">
+              <Turnstile 
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={() => setError("Verifikasi gagal. Silakan coba lagi.")}
+                onExpire={() => setTurnstileToken(null)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setTurnstileToken(null);
+                }}
+                disabled={isSubmitting}
+              >
+                Batal
+              </Button>
+              <Button 
+                onClick={handleConfirmSubmit} 
+                disabled={!turnstileToken || isSubmitting}
+                className="min-w-28 shadow-lg shadow-primary/20"
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="mr-2 size-4 animate-spin" /> Proses...</>
+                ) : (
+                  "Ya, Kirim"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

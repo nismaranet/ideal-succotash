@@ -1,11 +1,23 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IConditionRule {
+  fieldId: string;
+  operator: "equals" | "not_equals" | "contains";
+  value: string;
+}
+
+export interface IFormFieldCondition {
+  logic: "AND" | "OR";
+  rules: IConditionRule[];
+}
+
 export interface IFormField {
   id: string;
   type: "text" | "textarea" | "radio" | "checkbox" | "select";
   label: string;
   required: boolean;
   options?: string[];
+  condition?: IFormFieldCondition;
 }
 
 export interface ILowongan extends Document {
@@ -27,6 +39,17 @@ export interface ILowongan extends Document {
   updatedAt: Date;
 }
 
+const ConditionRuleSchema = new Schema<IConditionRule>({
+  fieldId: { type: String, required: true },
+  operator: { type: String, required: true, enum: ["equals", "not_equals", "contains"] },
+  value: { type: String, required: true },
+}, { _id: false });
+
+const FormFieldConditionSchema = new Schema<IFormFieldCondition>({
+  logic: { type: String, required: true, enum: ["AND", "OR"], default: "AND" },
+  rules: { type: [ConditionRuleSchema], default: [] },
+}, { _id: false });
+
 const FormFieldSchema = new Schema<IFormField>({
   id: { type: String, required: true },
   type: { 
@@ -37,6 +60,7 @@ const FormFieldSchema = new Schema<IFormField>({
   label: { type: String, required: true },
   required: { type: Boolean, default: false },
   options: { type: [String], default: [] },
+  condition: { type: FormFieldConditionSchema, required: false },
 }, { _id: false });
 
 const LowonganSchema = new Schema<ILowongan>(

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Search } from "lucide-react";
+import { Plus, Loader2, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,27 @@ export default function KelolaLowonganPage() {
         setIsLoading(false);
       });
   }, []);
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus lowongan "${title}"?\nTindakan ini tidak dapat dibatalkan.`)) {
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/lowongan/${id}`, {
+        method: "DELETE",
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Gagal menghapus lowongan");
+      }
+      
+      setData((prev) => prev.filter((item) => item._id !== id));
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
 
   const filteredData = data.filter((item) => {
     const matchSearch =
@@ -174,7 +195,7 @@ export default function KelolaLowonganPage() {
                           asChild
                           variant="default"
                           size="sm"
-                          className="w-28 text-xs h-7"
+                          className="w-32 text-xs h-7"
                         >
                           <Link
                             href={`/dashboard/manager/lowongan/${item._id}/form`}
@@ -182,18 +203,29 @@ export default function KelolaLowonganPage() {
                             Rakit Formulir
                           </Link>
                         </Button>
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          className="w-28 text-xs h-7"
-                        >
-                          <Link
-                            href={`/dashboard/manager/lowongan/${item._id}/edit`}
+                        <div className="flex gap-2 w-32 justify-end">
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-xs h-7"
                           >
-                            Edit Metadata
-                          </Link>
-                        </Button>
+                            <Link
+                              href={`/dashboard/manager/lowongan/${item._id}/edit`}
+                            >
+                              Edit Data
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon-sm"
+                            className="h-7 w-7 shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                            onClick={() => handleDelete(item._id, item.title)}
+                            title="Hapus Lowongan"
+                          >
+                            <Trash2 className="size-3" />
+                          </Button>
+                        </div>
                       </div>
                       {item.updatedBy && (
                         <div className="text-[10px] text-muted-foreground">

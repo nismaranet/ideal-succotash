@@ -13,10 +13,25 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { lowonganId, answers } = body;
+    const { lowonganId, answers, turnstileToken } = body;
 
-    if (!lowonganId || !answers) {
-      return NextResponse.json({ error: "Data pendaftaran tidak lengkap" }, { status: 400 });
+    if (!lowonganId || !answers || !turnstileToken) {
+      return NextResponse.json({ error: "Data pendaftaran tidak lengkap atau gagal verifikasi keamanan." }, { status: 400 });
+    }
+
+    // Verify Turnstile Token
+    const turnstileFormData = new URLSearchParams();
+    turnstileFormData.append("secret", process.env.TURNSTILE_SECRET_KEY || "");
+    turnstileFormData.append("response", turnstileToken);
+
+    const turnstileRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: turnstileFormData,
+    });
+    const turnstileData = await turnstileRes.json();
+    
+    if (!turnstileData.success) {
+      return NextResponse.json({ error: "Gagal verifikasi keamanan (Turnstile). Sistem mendeteksi aktivitas mencurigakan." }, { status: 400 });
     }
 
     await dbConnect();

@@ -15,12 +15,24 @@ import {
 } from "lucide-react";
 
 
+interface ConditionRule {
+  fieldId: string;
+  operator: "equals" | "not_equals" | "contains";
+  value: string;
+}
+
+interface FormFieldCondition {
+  logic: "AND" | "OR";
+  rules: ConditionRule[];
+}
+
 interface FormField {
   id: string;
   type: "text" | "textarea" | "radio" | "checkbox" | "select";
   label: string;
   required: boolean;
   options: string[];
+  condition?: FormFieldCondition;
 }
 
 export default function FormBuilderPage() {
@@ -117,6 +129,42 @@ export default function FormBuilderPage() {
     const newFields = [...fields];
     newFields[fieldIndex].options[optionIndex] = value;
     setFields(newFields);
+  };
+
+  const addConditionRule = (fieldIndex: number) => {
+    const newFields = [...fields];
+    const field = newFields[fieldIndex];
+    if (!field.condition) {
+      field.condition = { logic: "AND", rules: [] };
+    }
+    field.condition.rules.push({ fieldId: "", operator: "equals", value: "" });
+    setFields(newFields);
+  };
+
+  const removeConditionRule = (fieldIndex: number, ruleIndex: number) => {
+    const newFields = [...fields];
+    newFields[fieldIndex].condition!.rules.splice(ruleIndex, 1);
+    if (newFields[fieldIndex].condition!.rules.length === 0) {
+      newFields[fieldIndex].condition = undefined; // Hapus condition jika tidak ada rule
+    }
+    setFields(newFields);
+  };
+
+  const updateConditionRule = (fieldIndex: number, ruleIndex: number, key: keyof ConditionRule, value: string) => {
+    const newFields = [...fields];
+    newFields[fieldIndex].condition!.rules[ruleIndex] = {
+      ...newFields[fieldIndex].condition!.rules[ruleIndex],
+      [key]: value
+    };
+    setFields(newFields);
+  };
+
+  const updateConditionLogic = (fieldIndex: number, logic: "AND" | "OR") => {
+    const newFields = [...fields];
+    if (newFields[fieldIndex].condition) {
+      newFields[fieldIndex].condition!.logic = logic;
+      setFields(newFields);
+    }
   };
 
   const handleSave = async () => {
@@ -324,6 +372,83 @@ export default function FormBuilderPage() {
                     >
                       Wajib Diisi
                     </Label>
+                  </div>
+
+                  {/* Logika Kondisional */}
+                  <div className="pt-4 border-t border-border mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                        Logika Kondisional
+                      </Label>
+                      {!field.condition && (
+                        <Button variant="outline" size="sm" onClick={() => addConditionRule(idx)} className="h-7 text-[10px] px-2">
+                          <Plus className="size-3 mr-1" /> Tambah
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {field.condition && (
+                      <div className="space-y-3 bg-muted/30 p-3 rounded-md border border-border/50">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-muted-foreground">Tampilkan jika</span>
+                          <select 
+                            className="h-6 text-xs rounded border-input bg-background px-1"
+                            value={field.condition.logic}
+                            onChange={(e) => updateConditionLogic(idx, e.target.value as "AND" | "OR")}
+                          >
+                            <option value="AND">SEMUA</option>
+                            <option value="OR">SALAH SATU</option>
+                          </select>
+                          <span className="text-xs text-muted-foreground">kondisi terpenuhi:</span>
+                        </div>
+
+                        {field.condition.rules.map((rule, ruleIdx) => {
+                          const availableFields = fields.slice(0, idx); 
+                          return (
+                            <div key={ruleIdx} className="flex flex-col gap-2 p-2 bg-background border border-border rounded">
+                              <div className="flex items-center gap-2">
+                                <select 
+                                  className="flex-1 h-7 text-xs rounded border-input bg-background px-1 w-full"
+                                  value={rule.fieldId}
+                                  onChange={(e) => updateConditionRule(idx, ruleIdx, "fieldId", e.target.value)}
+                                >
+                                  <option value="" disabled>-- Pilih Pertanyaan --</option>
+                                  {availableFields.map(prevF => (
+                                    <option key={prevF.id} value={prevF.id}>
+                                      {prevF.label.substring(0, 30) || "Tanpa judul"}{prevF.label.length > 30 ? "..." : ""}
+                                    </option>
+                                  ))}
+                                </select>
+                                <Button variant="ghost" size="icon-sm" onClick={() => removeConditionRule(idx, ruleIdx)} className="text-red-400 shrink-0 h-7 w-7">
+                                  <X className="size-3" />
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <select 
+                                  className="w-24 h-7 text-[10px] rounded border-input bg-background px-1 shrink-0"
+                                  value={rule.operator}
+                                  onChange={(e) => updateConditionRule(idx, ruleIdx, "operator", e.target.value)}
+                                >
+                                  <option value="equals">Sama Dengan</option>
+                                  <option value="not_equals">Tidak Sama</option>
+                                  <option value="contains">Berisi</option>
+                                </select>
+                                <Input 
+                                  className="flex-1 h-7 text-xs" 
+                                  placeholder="Nilai jawaban..." 
+                                  value={rule.value} 
+                                  onChange={(e) => updateConditionRule(idx, ruleIdx, "value", e.target.value)}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        <Button variant="ghost" size="sm" onClick={() => addConditionRule(idx)} className="h-6 text-[10px] w-full mt-1 text-muted-foreground hover:text-foreground">
+                          <Plus className="size-3 mr-1" /> Tambah Aturan
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

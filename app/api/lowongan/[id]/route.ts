@@ -89,3 +89,30 @@ export async function PUT(
     return NextResponse.json({ error: error.message || "Gagal mengupdate lowongan" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user || (session.user.role !== "manager" && session.user.role !== "admin")) {
+      return NextResponse.json({ error: "Tidak memiliki akses (Unauthorized)" }, { status: 401 });
+    }
+
+    await dbConnect();
+
+    const deleted = await Lowongan.findByIdAndDelete(id);
+    
+    if (!deleted) {
+      return NextResponse.json({ error: "Lowongan tidak ditemukan" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: "Lowongan berhasil dihapus" });
+  } catch (error: any) {
+    console.error("DELETE Lowongan Error:", error);
+    return NextResponse.json({ error: error.message || "Gagal menghapus lowongan" }, { status: 500 });
+  }
+}
