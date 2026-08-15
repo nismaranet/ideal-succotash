@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,22 @@ export default function CreateLowonganPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [discordRoles, setDiscordRoles] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await fetch("/api/discord/roles");
+        if (res.ok) {
+          const json = await res.json();
+          setDiscordRoles(json.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch discord roles", err);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -185,6 +201,25 @@ export default function CreateLowonganPage() {
                 <option value="Open">Langsung Buka (Open)</option>
                 <option value="Draft">Simpan Saja (Draft)</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="targetRoleId">Discord Target Role (Mention)</Label>
+              <select
+                id="targetRoleId"
+                name="targetRoleId"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">-- Pilih Role (Opsional) --</option>
+                {discordRoles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Role yang akan di-mention di Discord saat ada pendaftar baru.
+              </p>
             </div>
 
             <div className="space-y-2">

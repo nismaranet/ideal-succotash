@@ -18,6 +18,22 @@ export default function EditLowonganPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<any>(null);
+  const [discordRoles, setDiscordRoles] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const res = await fetch("/api/discord/roles");
+        if (res.ok) {
+          const json = await res.json();
+          setDiscordRoles(json.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch discord roles", err);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   useEffect(() => {
     fetch(`/api/lowongan/${id}`)
@@ -233,6 +249,26 @@ export default function EditLowonganPage() {
                 <option value="Closed">Tutup (Closed)</option>
                 <option value="Draft">Simpan Saja (Draft)</option>
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="targetRoleId">Discord Target Role (Mention)</Label>
+              <select
+                id="targetRoleId"
+                name="targetRoleId"
+                defaultValue={data.targetRoleId || ""}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">-- Pilih Role (Opsional) --</option>
+                {discordRoles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Role yang akan di-mention di Discord saat ada pendaftar baru.
+              </p>
             </div>
 
             <div className="space-y-2">

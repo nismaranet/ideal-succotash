@@ -105,6 +105,16 @@ export async function POST(req: Request) {
                   type: 0, // Role
                   allow: "1024", // Allow VIEW_CHANNEL
                 },
+                // Tambahkan akses untuk targetRoleId secara eksplisit jika disetel dan berbeda dengan manager role
+                ...(lowongan.targetRoleId && lowongan.targetRoleId !== process.env.DISCORD_MANAGER_ROLE_ID
+                  ? [
+                      {
+                        id: lowongan.targetRoleId,
+                        type: 0, // Role
+                        allow: "1024", // Allow VIEW_CHANNEL
+                      },
+                    ]
+                  : []),
               ],
             }),
           }
@@ -149,7 +159,7 @@ export async function POST(req: Request) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              content: `Halo <@${session.user.discordId}>, terima kasih telah mendaftar! Mohon tunggu kehadiran <@&${process.env.DISCORD_MANAGER_ROLE_ID}> untuk merespon lamaran Anda.`,
+              content: `Halo <@${session.user.discordId}>, terima kasih telah mendaftar! Mohon tunggu kehadiran <@&${lowongan.targetRoleId || process.env.DISCORD_MANAGER_ROLE_ID}> untuk merespon lamaran Anda.`,
               embeds: [
                 {
                   title: `Pendaftaran Baru: ${lowongan.title}`,

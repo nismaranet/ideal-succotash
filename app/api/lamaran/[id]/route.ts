@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongoose";
 import { Application } from "@/models/Application";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -83,6 +85,10 @@ export async function PUT(
     };
 
     if (action === "CLAIM") {
+      if (application.status !== "Pending") {
+        return NextResponse.json({ error: "Lamaran sudah diklaim atau diproses" }, { status: 400 });
+      }
+
       application.claimedBy = {
         discordId: session.user.discordId as string,
         name: session.user.name || "Manager",
@@ -98,7 +104,33 @@ export async function PUT(
       return NextResponse.json({ success: true, data: application });
     }
 
+    if (action === "TAKEOVER") {
+      if (application.status !== "Reviewed") {
+        return NextResponse.json({ error: "Hanya lamaran yang sedang direview yang bisa diambil alih" }, { status: 400 });
+      }
+      if (!payload || !payload.reason) {
+        return NextResponse.json({ error: "Alasan takeover wajib diisi" }, { status: 400 });
+      }
+
+      application.claimedBy = {
+        discordId: session.user.discordId as string,
+        name: session.user.name || "Manager",
+      };
+      // Keep status as "Reviewed"
+      await application.save();
+
+      if (application.discordChannelId) {
+        const msg = `⚠️ **Pemberitahuan**: Penanganan lamaran ini telah diambil alih oleh <@${session.user.discordId}>.\n**Alasan**: ${payload.reason}`;
+        await sendDiscordMessage(application.discordChannelId, msg);
+      }
+
+      return NextResponse.json({ success: true, data: application });
+    }
+
     if (action === "EDIT_ANSWERS") {
+      if (application.claimedBy?.discordId !== session.user.discordId) {
+        return NextResponse.json({ error: "Anda tidak berhak mengedit lamaran ini" }, { status: 403 });
+      }
       if (!payload || !payload.answers) {
         return NextResponse.json({ error: "Data jawaban tidak valid" }, { status: 400 });
       }
@@ -108,6 +140,9 @@ export async function PUT(
     }
 
     if (action === "ACCEPT" || action === "REJECT") {
+      if (application.claimedBy?.discordId !== session.user.discordId) {
+        return NextResponse.json({ error: "Anda tidak berhak memproses lamaran ini" }, { status: 403 });
+      }
       if (!payload || !payload.reason) {
         return NextResponse.json({ error: "Alasan wajib diisi" }, { status: 400 });
       }

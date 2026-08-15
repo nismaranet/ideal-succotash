@@ -35,6 +35,7 @@ export interface ILowongan extends Document {
   createdBy: { name: string; discordId: string };
   updatedBy?: { name: string; discordId: string };
   formFields?: IFormField[];
+  targetRoleId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -123,6 +124,10 @@ const LowonganSchema = new Schema<ILowongan>(
     formFields: {
       type: [FormFieldSchema],
       default: [],
+    },
+    targetRoleId: {
+      type: String,
+      default: "",
     },
   },
   {

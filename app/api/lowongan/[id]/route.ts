@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import dbConnect from "@/lib/mongoose";
 import { Lowongan } from "@/models/Lowongan";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -71,6 +73,7 @@ export async function PUT(
         description: body.description,
         deadline: body.deadline ? new Date(body.deadline) : undefined,
         requirements: requirementsArray,
+        targetRoleId: body.targetRoleId,
         updatedBy: {
           name: session.user.name || "Unknown",
           discordId: session.user.discordId || "Unknown",

@@ -45,7 +45,7 @@ export default function LamaranDetailPage() {
 
   // State untuk Modal Keputusan
   const [modalOpen, setModalOpen] = useState(false);
-  const [decision, setDecision] = useState<"ACCEPT" | "REJECT" | null>(null);
+  const [decision, setDecision] = useState<"ACCEPT" | "REJECT" | "TAKEOVER" | null>(null);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,7 +55,7 @@ export default function LamaranDetailPage() {
 
   const fetchLamaran = async () => {
     try {
-      const res = await fetch(`/api/lamaran/${lamaranId}`);
+      const res = await fetch(`/api/lamaran/${lamaranId}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Gagal mengambil data lamaran");
       const json = await res.json();
       setData(json.data);
@@ -133,7 +133,7 @@ export default function LamaranDetailPage() {
     }
   };
 
-  const openDecisionModal = (type: "ACCEPT" | "REJECT") => {
+  const openDecisionModal = (type: "ACCEPT" | "REJECT" | "TAKEOVER") => {
     setDecision(type);
     setReason("");
     setModalOpen(true);
@@ -293,7 +293,7 @@ export default function LamaranDetailPage() {
                       Klaim Lamaran
                     </Button>
                   )}
-                  {data.status === "Reviewed" && (
+                  {data.status === "Reviewed" && session?.user?.discordId === data.claimedBy?.discordId && (
                     <>
                       <Button
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -311,6 +311,15 @@ export default function LamaranDetailPage() {
                         Tolak
                       </Button>
                     </>
+                  )}
+                  {data.status === "Reviewed" && session?.user?.discordId !== data.claimedBy?.discordId && (
+                    <Button
+                      className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                      onClick={() => openDecisionModal("TAKEOVER")}
+                    >
+                      <HandHeart className="mr-2 size-4" />
+                      Ambil Alih (Takeover)
+                    </Button>
                   )}
                 </CardContent>
               </Card>
@@ -346,7 +355,8 @@ export default function LamaranDetailPage() {
                       disabled={
                         !isManager ||
                         data.status === "Accepted" ||
-                        data.status === "Rejected"
+                        data.status === "Rejected" ||
+                        (data.status === "Reviewed" && session?.user?.discordId !== data.claimedBy?.discordId)
                       }
                       className="bg-muted/30 focus-visible:bg-background"
                     />
@@ -361,7 +371,8 @@ export default function LamaranDetailPage() {
                       disabled={
                         !isManager ||
                         data.status === "Accepted" ||
-                        data.status === "Rejected"
+                        data.status === "Rejected" ||
+                        (data.status === "Reviewed" && session?.user?.discordId !== data.claimedBy?.discordId)
                       }
                       className="bg-muted/30 focus-visible:bg-background"
                     />
@@ -371,7 +382,8 @@ export default function LamaranDetailPage() {
 
               {isManager &&
                 data.status !== "Accepted" &&
-                data.status !== "Rejected" && (
+                data.status !== "Rejected" &&
+                (data.status === "Pending" || session?.user?.discordId === data.claimedBy?.discordId) && (
                   <div className="pt-4 border-t border-border flex justify-end">
                     <Button onClick={handleSaveAnswers} disabled={isSaving}>
                       <Save className="mr-2 size-4" />
@@ -389,7 +401,7 @@ export default function LamaranDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="bg-background rounded-xl shadow-xl w-full max-w-md p-6 animate-fade-in-up">
             <h3 className="text-xl font-bold mb-2">
-              {decision === "ACCEPT" ? "Terima Pelamar" : "Tolak Pelamar"}
+              {decision === "ACCEPT" ? "Terima Pelamar" : decision === "REJECT" ? "Tolak Pelamar" : "Ambil Alih Lamaran"}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               Mohon berikan alasan atas keputusan ini. Alasan ini akan tercatat
@@ -398,7 +410,7 @@ export default function LamaranDetailPage() {
 
             <div className="space-y-4 mb-6">
               <Label>
-                Alasan {decision === "ACCEPT" ? "Penerimaan" : "Penolakan"}
+                Alasan {decision === "ACCEPT" ? "Penerimaan" : decision === "REJECT" ? "Penolakan" : "Takeover"}
               </Label>
               <Textarea
                 value={reason}
