@@ -39,6 +39,7 @@ export const authOptions: NextAuthOptions = {
       let driverData = null;
       let userRole: "user" | "manager" | "admin" = "user";
       let isBooster = false;
+      let isGuildMember = false;
       let nismaraplus: any = null;
       const guildId = "863959415702028318";
       const managerRoleId = "1406574228794507354";
@@ -72,6 +73,7 @@ export const authOptions: NextAuthOptions = {
 
             if (response.ok) {
               const memberData = await response.json();
+              isGuildMember = true;
 
               if (memberData.roles.includes(managerRoleId))
                 userRole = "manager";
@@ -86,20 +88,34 @@ export const authOptions: NextAuthOptions = {
                   $set: {
                     discordRole: userRole,
                     isBooster: isBooster,
+                    isGuildMember: isGuildMember,
                     lastDiscordSync: new Date(),
                   },
                 },
               );
             } else {
               console.error("❌ [API DISCORD] Error Status:", response.status);
+              isGuildMember = false;
+              // Simpan status bahwa user bukan guild member
+              await db.collection("users").updateOne(
+                { _id: new ObjectId(user.id) },
+                {
+                  $set: {
+                    isGuildMember: false,
+                    lastDiscordSync: new Date(),
+                  },
+                },
+              );
             }
           } catch (error) {
             console.error("❌ [FETCH] Gagal menghubungi Discord API:", error);
+            isGuildMember = dbUser?.isGuildMember || false;
           }
         } else {
           // 3. JIKA BELUM 10 MENIT, GUNAKAN DATA DARI DATABASE (TIDAK SPAM API)
           userRole = dbUser?.discordRole || "user";
           isBooster = dbUser?.isBooster || false;
+          isGuildMember = dbUser?.isGuildMember || false;
         }
 
         // --- FETCH NISMARA+ DARI DB (SELALU) ---
@@ -229,6 +245,7 @@ export const authOptions: NextAuthOptions = {
       session.user.driverData = driverData;
       session.user.role = userRole;
       session.user.isBooster = isBooster;
+      session.user.isGuildMember = isGuildMember;
       session.user.nismaraplus = nismaraplus;
       session.user.xp = dbUser?.xp || 0;
       session.user.level = dbUser?.level || 1;

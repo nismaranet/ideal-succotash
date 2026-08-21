@@ -18,6 +18,7 @@ declare module "next-auth" {
       level: number;
       joinedConvoy: number;
       isBooster: boolean;
+      isGuildMember: boolean;
       nismaraplus: {
         status: boolean;
         startedAt?: Date | string | null;

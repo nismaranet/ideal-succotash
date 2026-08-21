@@ -12,6 +12,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!session.user.isGuildMember) {
+      return NextResponse.json({ error: "Anda harus bergabung dengan server Discord Nismara terlebih dahulu untuk melamar." }, { status: 403 });
+    }
+
     const body = await req.json();
     const { lowonganId, answers, turnstileToken } = body;
 
